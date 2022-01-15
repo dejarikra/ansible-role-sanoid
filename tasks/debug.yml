@@ -1,0 +1,18 @@
+---
+# Copyright (C) 2022 Mohamed Tawfik <m_tawfik@aucegypt.edu>
+
+- name: Print zpool names
+  ansible.builtin.debug:
+    var: sanoid__zpool_names
+
+- name: Print sanoid datasets
+  ansible.builtin.debug:
+    var: sanoid__combined_datasets
+
+- name: Print sanoid templates
+  ansible.builtin.debug:
+    var: sanoid__combined_templates
+
+- name: Print sanoid backup datasets
+  ansible.builtin.debug:
+    var: sanoid__backup_datasets

@@ -1,0 +1,7 @@
+---
+# Copyright (C) 2022 Mohamed Tawfik <m_tawfik@aucegypt.edu>
+
+- hosts: localhost
+  remote_user: root
+  roles:
+    - sanoid

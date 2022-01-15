@@ -1,0 +1,52 @@
+{# Copyright (C) 2022 Mohamed Tawfik <m_tawfik@aucegypt.edu>
+#}
+# {{ ansible_managed|d("All changes will be lost") }}
+
+######################################
+# This is the sanoid.conf file.      #
+# It should go in /etc/sanoid.       #
+######################################
+{%  if sanoid__combined_datasets | default([]) | length == 0 %}
+{%    for element in sanoid__zpool_names | list | default([]) %}
+
+[{{ element }}]
+    use_template = {{ sanoid__production_template.name }}
+    recursive = yes
+{%    endfor %}
+{%  else %}
+{%    for element in sanoid__combined_datasets | list | default([]) %}
+{%      if element.name %}
+
+[{{ element.name }}]
+    use_template = {{ element.use_template | default(sanoid__production_template.name)}}
+{%        for key, value in element.items() %}
+{%          if key not in [ 'name', 'use_template' ] %}
+    {{ key }} = {{ value }}
+{%          endif %}
+{%        endfor %}
+{%      endif %}
+{%    endfor %}
+{%  endif %}
+{%  if sanoid__autodiscover_backup_datasets | bool %}
+{%    for element in sanoid__backup_datasets | list | default([]) %}
+
+[{{ element }}]
+    use_template = {{ sanoid__backup_template.name }}
+    recursive = yes
+{%    endfor %}
+{% endif %}
+
+#############################
+# templates below this line #
+#############################
+{%  for element in sanoid__combined_templates | default([]) %}
+{%    if element.name %}
+
+[template_{{ element.name }}]
+{%      for key, value in element.items() %}
+{%        if key not in [ 'name' ] %}
+    {{ key }} = {{ value }}
+{%        endif %}
+{%      endfor %}
+{%    endif %}
+{%  endfor %}

@@ -1,0 +1,116 @@
+---
+# Copyright (C) 2022 Mohamed Tawfik <m_tawfik@aucegypt.edu>
+
+### Global configuration
+### ---------------------------------------------------
+
+# Enable or disable the role
+sanoid__enabled: True
+
+### APT packages
+### ---------------------------------------------------
+
+# Name of the "sanoid" package to install
+sanoid__sanoid_package_name: 'sanoid'
+
+# List of base APT packages to install.
+sanoid__base_packages:
+- '{{ sanoid__sanoid_package_name }}'
+
+# List of additional APT packages to install.
+sanoid__packages: []
+
+### Zpools
+### ---------------------------------------------------
+
+# Names of zpools to manage.
+# Leave empty to auto-discover with the `zpool list` command
+sanoid__zpool_names: []
+
+### Sanoid datasets
+### ---------------------------------------------------
+
+# Default ZFS datasets for sanoid to snapshot.
+sanoid__default_datasets: []
+
+# ZFS datasets for sanoid to snapshot which should be defined on all hosts in the Ansible inventory.
+sanoid__datasets: []
+
+# ZFS datasets for sanoid to snapshot which should be defined on a group of hosts in the Ansible inventory.
+sanoid__group_datasets: []
+
+# ZFS datasets for sanoid to snapshot which should be defined on specific hosts in the Ansible inventory.
+sanoid__host_datasets: []
+
+# YAML list which defines the order in which ZFS datasets for sanoid to backup are defined and how they affect each other.
+# This list is then passed to the parser template to generate final defintions of datasets for sanoid to use.
+# If this list is empty, then all zpools in the sanoid__zpool_names are used instead, with `recursive` set to `True` and the first tempate in sanoid__combined_templates
+sanoid__combined_datasets:  '{{ q("flattened",
+                                    sanoid__default_datasets
+                                  + sanoid__datasets
+                                  + sanoid__group_datasets
+                                  + sanoid__host_datasets) }}'
+
+# If True, will attempt to autodiscover datasets of the form "<zpool>/*/backup".
+# Such datasets will use the `sanoid__backup_template` template with recursive = yes
+sanoid__autodiscover_backup_datasets: True
+
+### Sanoid templates
+### ---------------------------------------------------
+
+# Default sanoid production template
+# Any sanoid__dataset which doesn't define the `use_template` key will use the first template
+sanoid__production_template:
+  name: production
+  
+  autoprune: 'yes'
+  autosnap: 'yes'
+  
+  frequently: 0
+  hourly: 24
+  daily: 30
+  monthly: 12
+
+# Default sanoid backup template
+# Any "backup" datasets autodiscovered by the role will use this template
+sanoid__backup_template:
+  name: backup
+  
+  autoprune: 'yes'
+  autosnap: 'no'
+  
+  frequently: 0
+  hourly: 24
+  daily: 30
+  monthly: 12
+  
+  hourly_warn: 2880
+  hourly_crit: 3600
+  daily_warn: 48
+  daily_crit: 60
+
+# Default sanoid ignore tempate
+sanoid__ignore_template:
+  name: ignore
+  
+  autoprune: 'no'
+  autosnap: 'no'
+  
+  monitor: 'no'
+
+# Sanoid templates which should be defined on all hosts in the Ansible inventory.
+sanoid__templates: []
+
+# Sanoid templates which should be defined on a group of hosts in the Ansible inventory.
+sanoid__group_templates: []
+
+# Sanoid templates which should be defined on specific hosts in the Ansible inventory.
+sanoid__host_templates: []
+
+# YAML list which defines the order in which sanoid templates are defined and affect each other.
+# This list is then passed to the parser template to generate final defintions of templates for sanoid to use.
+sanoid__combined_templates: '{{ q("flattened",
+                                  [ sanoid__production_template, sanoid__backup_template, sanoid__ignore_template ]
+                                  + sanoid__templates
+                                  + sanoid__group_templates
+                                  + sanoid__host_templates) }}'

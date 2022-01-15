@@ -1,0 +1,28 @@
+---
+# Copyright (C) 2022 Mohamed Tawfik <m_tawfik@aucegypt.edu>
+
+- name: Read pool names
+  ansible.builtin.command: 
+    cmd: zpool list -H -o name
+  register: sanoid__register_pools
+  changed_when: False
+  when: sanoid__zpool_names|length == 0
+
+- name: Set sanoid__zpool_names
+  ansible.builtin.set_fact:
+    sanoid__zpool_names: "{{ sanoid__register_pools.stdout_lines }}"
+  when: sanoid__zpool_names|length == 0
+
+- name: Read '<zpool>/backup' datasets
+  ansible.builtin.shell:
+    cmd: set -o pipefail && zfs list -H -o name | grep r*/backup$
+    executable: /bin/bash
+  register: sanoid__register_backup_datasets
+  changed_when: False
+  failed_when: sanoid__register_backup_datasets.rc not in [ 0, 1 ]
+  when: sanoid__autodiscover_backup_datasets|bool
+
+- name: Set sanoid__backup_datasets
+  ansible.builtin.set_fact:
+    sanoid__backup_datasets: "{{ sanoid__register_backup_datasets.stdout_lines }}"
+  when: sanoid__autodiscover_backup_datasets|bool

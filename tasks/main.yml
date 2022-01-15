@@ -1,0 +1,29 @@
+---
+# Copyright (C) 2022 Mohamed Tawfik <m_tawfik@aucegypt.edu>
+
+# - name: Import custom Ansible plugins
+#   import_role:
+#     name: ansible_plugins
+
+- name: Ensure required packages are installed
+  package:
+    name: '{{ q("flattened", 
+                  sanoid__base_packages
+                + sanoid__packages) }}'
+    state: 'present'
+  register: sanoid__register_packages
+  until: sanoid__register_packages is succeeded
+  when: sanoid__enabled|bool
+
+- name: Include tasks to read ZFS-related variables
+  ansible.builtin.include_tasks: set_vars.yml
+
+- name: Include tasks to print ZFS-related variables
+  ansible.builtin.include_tasks: debug.yml
+
+- name: Generate sanoid configuration file
+  ansible.builtin.template:
+    src: 'etc/sanoid/sanoid.conf.j2'
+    dest: '/etc/sanoid/sanoid.conf'
+    mode: '0644'
+  when: sanoid__enabled|bool
